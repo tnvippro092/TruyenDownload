@@ -1,0 +1,7 @@
+Cách download mottruyen:
+B1: run file runfile.bat
+B2: lấy link truyện ví dụ: https://mottruyen.vn/long-nguoi-chi-dang-vai-dong-bac-le/41295/chuong/1
+B3: Điền vào Story ID: 41295 
+B4: Điền vào Số lượng chapter từ ... đến ...
+B5: Nhấp Submit
+B6: Kiểm tra file trong thư mục output_files
