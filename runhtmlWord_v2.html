@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API to Text Exporter</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Form layout styles */
+        .form-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            margin: 0;
+            flex: 0 1 auto;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .range-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .range-inputs label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0;
+        }
+        
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 100px;
+            font-size: 14px;
+        }
+        
+        button {
+            height: 40px;
+            margin-top: 21px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 0 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .progress {
+            margin-top: 15px;
+            display: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+
+        /* Chapter viewer styles */
+        .chapter-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .chapter-info {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .nav-button {
+            padding: 8px 16px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #555;
+            transition: all 0.2s ease;
+            height: auto;
+            margin-top: 0;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .nav-button:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            color: #aaa;
+        }
+
+        .chapter-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .chapter-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+        .chapter-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            margin: 0;
+            height: auto;
+        }
+
+        .icon-button:hover {
+            background-color: #f3f4f6;
+            transform: none;
+        }
+
+        .icon-button svg {
+            width: 20px;
+            height: 20px;
+            color: #555;
+        }
+
+        .success-icon {
+            color: #22c55e !important;
+        }
+		select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API to Text Exporter</h1>
+        <form class="form-container" onsubmit="event.preventDefault(); downloadChapters();">
+            <div class="form-group">
+                <label for="source">Nguồn:</label>
+                <select id="source" required>
+                    <option value="mottruyen">Mottruyen</option>
+                    <option value="linhthanhnguyet">Linh Thanh Nguyet</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="storyId">Story ID:</label>
+                <input type="Text" id="storyId" required>
+            </div>
+            <div class="form-group">
+                <label>Khoảng Chapter:</label>
+                <div class="range-inputs">
+                    <label>Từ: <input type="number" id="chapterFrom" required></label>
+                    <label>Đến: <input type="number" id="chapterTo" required></label>
+                </div>
+            </div>
+            <button type="submit" id="downloadBtn">Xem</button>
+        </form>
+        <div id="status"></div>
+        <progress class="progress" id="downloadProgress" value="0" max="100"></progress>
+        <div id="preview"></div>
+    </div>
+
+    <script>
+        // Define ChapterPreview component
+        const ICONS = {
+            download: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>',
+            copy: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
+            check: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="success-icon"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+        };
+		
+		async function cleanText(text) {
+			// Loại bỏ khoảng trắng thừa và xuống dòng không cần thiết
+			text = text.trim()
+				.replace(/\n+/g, '\n')
+				.replace(/ +/g, ' ')
+				// Loại bỏ các dòng trống liên tiếp
+				.replace(/\n\s*\n/g, '\n\n');
+			return text;
+		}
+
+		function formatChapterContent(text) {
+			// Tách các đoạn văn và format lại
+			const paragraphs = text.split('\n');
+			const formattedParagraphs = paragraphs
+				.filter(para => para.trim()) // Chỉ xử lý các đoạn không rỗng
+				.map(para => '    ' + para.trim()); // Thêm khoảng trống đầu dòng
+			
+			// Nối các đoạn văn với 2 dòng trống ở giữa
+			return formattedParagraphs.join('\n\n');
+		}
+        const ChapterPreview = ({fileName,content, chapterFrom, chapterTo }) => {
+            const [currentPage, setCurrentPage] = React.useState(chapterFrom);
+            const [copyStatus, setCopyStatus] = React.useState(false);
+            
+            // Split content by chapter markers and create array of chapter objects
+            const chapters = content.split(/\n\nChapter \d+\n=+\n\n/)
+                .filter(Boolean)
+                .map((content, index) => ({
+                    number: chapterFrom + index,
+                    content: content.trim()
+                }));
+
+            const handlePrevPage = () => {
+                setCurrentPage(current => Math.max(chapterFrom, current - 1));
+                setCopyStatus(false);
+            };
+
+            const handleNextPage = () => {
+                setCurrentPage(current => Math.min(chapterTo, current + 1));
+                setCopyStatus(false);
+            };
+
+            const handleDownload = () => {
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `${fileName}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            };
+
+            const handleCopy = () => {
+                const currentChapter = chapters.find(ch => ch.number === currentPage);
+                const chapterContent = currentChapter ? 
+                    `Chapter ${currentPage}\n${'='.repeat(40)}\n\n${currentChapter.content}` : 
+                    '';
+                
+                navigator.clipboard.writeText(chapterContent).then(() => {
+                    setCopyStatus(true);
+                    setTimeout(() => setCopyStatus(false), 2000);
+                });
+            };
+
+            // Find the current chapter content
+            const currentChapter = chapters.find(ch => ch.number === currentPage);
+            const chapterContent = currentChapter ? 
+                `Chapter ${currentPage}\n${'='.repeat(40)}\n\n${currentChapter.content}` : 
+                'Loading...';
+
+            return React.createElement(
+                'div',
+                { className: 'chapter-viewer' },
+                [
+                    React.createElement(
+                        'div',
+                        { 
+                            key: 'navigation',
+                            className: 'chapter-navigation'
+                        },
+                        [
+                            React.createElement(
+                                'div',
+                                { 
+                                    key: 'page-info',
+                                    className: 'chapter-info'
+                                },
+                                [
+                                    React.createElement(
+                                        'span',
+                                        { key: 'chapter-number' },
+                                        `Chapter ${currentPage} / ${chapterTo}`
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            key: 'download-button',
+                                            onClick: handleDownload,
+                                            className: 'icon-button',
+                                            title: 'Download all chapters',
+                                            dangerouslySetInnerHTML: { __html: ICONS.download }
+                                        }
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            key: 'copy-button',
+                                            onClick: handleCopy,
+                                            className: 'icon-button',
+                                            title: 'Copy current chapter',
+                                            dangerouslySetInnerHTML: { __html: copyStatus ? ICONS.check : ICONS.copy }
+                                        }
+                                    )
+                                ]
+                            ),
+                            React.createElement(
+                                'div',
+                                { 
+                                    key: 'buttons',
+                                    className: 'flex gap-2'
+                                },
+                                [
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            key: 'prev',
+                                            onClick: handlePrevPage,
+                                            disabled: currentPage === chapterFrom,
+                                            className: 'nav-button'
+                                        },
+                                        'Trước'
+                                    ),
+                                    React.createElement(
+                                        'button',
+                                        {
+                                            key: 'next',
+                                            onClick: handleNextPage,
+                                            disabled: currentPage === chapterTo,
+                                            className: 'nav-button'
+                                        },
+                                        'Sau'
+                                    )
+                                ]
+                            )
+                        ]
+                    ),
+                    React.createElement(
+                        'div',
+                        { 
+                            key: 'chapter-content',
+                            className: 'chapter-content'
+                        },
+                        React.createElement(
+                            'div',
+                            { className: 'chapter-text' },
+                            chapterContent
+                        )
+                    )
+                ]
+            );
+        };
+
+        async function getChapterContent(storyId, chapterId) {
+            const source = document.getElementById('source').value;
+            
+            if (source === 'mottruyen') {
+                try {
+                    const apiUrl = `https://api.mottruyen.vn/api/v1/story/${storyId}/chapter/${chapterId}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Origin': window.location.origin
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const name = data.name || "Untitled";
+                        const content = data.content
+                            .replace(/<p>/g, "")
+                            .replace(/<\/p>/g, "\n")
+                            .replace(/&nbsp;/g, " ")
+                            .replace(/<br>/g, "\n")
+                            .replace(/\n\s*\n/g, "\n")
+                            .trim();
+                        return { name, content };
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                } catch (error) {
+                    try {
+                        const apiUrl = `https://api.mottruyen.vn/api/v1/story/${storyId}/chapter/${chapterId}`;
+                        
+                        const response = await fetch(apiUrl);
+                        if (response.ok) {
+                            const data = await response.json();
+                            const content = JSON.parse(data.contents);
+                            const name = content.name || "Untitled";
+                            const processedContent = content.content
+                                .replace(/<p>/g, "")
+                                .replace(/<\/p>/g, "\n")
+                                .replace(/&nbsp;/g, " ")
+                                .replace(/<br>/g, "\n")
+                                .replace(/\n\s*\n/g, "\n")
+                                .trim();
+                            return { name, processedContent };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    } catch (backupError) {
+                        throw new Error(`Error fetching chapter ${chapterId}: ${error.message}. Backup also failed: ${backupError.message}`);
+                    }
+                }
+            } else if (source === 'linhthanhnguyet') {
+                try {
+                   // Sử dụng proxy để bypass CORS
+                    const targetUrl = `https://linhthanhnguyet.com/${storyId}/chuong-${chapterId}`;
+                    // Sử dụng allorigins.win làm proxy
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+                    
+                    const response = await fetch(proxyUrl);
+                    
+                    if (response.ok) {
+                        const html = await response.text();
+                        
+                        // Create a temporary DOM element to parse the HTML
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Find the content container
+                        const contentElement = doc.querySelector('.watch-page-fiction-content');
+                        
+                        if (!contentElement) {
+                            throw new Error('Content element not found');
+                        }
+						
+                        // Find the content container
+                        const contentElement1 = doc.querySelector('.watch-main-title');
+		
+                        // Get the title for name
+                        const titleElement = doc.querySelector('title');
+                        const name = contentElement1 ? contentElement1.textContent.trim() : "Untitled";
+                        
+                        // Get and clean the content
+                        let content = contentElement.textContent
+                            .replace(/\t/g, '')
+                            .replace(/\n\s*\n/g, '\n')
+                            .trim();
+                        
+                        return { name, content };
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                } catch (error) {
+                    throw new Error(`Error fetching chapter ${chapterId} from Linh Thanh Nguyet: ${error.message}`);
+                }
+            } else {
+                throw new Error('Invalid source selected');
+            }
+        }
+
+        async function downloadChapters() {
+            const storyId = document.getElementById('storyId').value;
+            const chapterFrom = parseInt(document.getElementById('chapterFrom').value);
+            const chapterTo = parseInt(document.getElementById('chapterTo').value);
+            const statusDiv = document.getElementById('status');
+            const progressBar = document.getElementById('downloadProgress');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const preview = document.getElementById('preview');
+
+            if (!storyId || !chapterFrom || !chapterTo) {
+                showStatus('Vui lòng nhập Story ID và khoảng chapter (Từ - Đến).', 'error');
+                return;
+            }
+
+            if (chapterFrom > chapterTo) {
+                showStatus('Chapter bắt đầu phải nhỏ hơn hoặc bằng chapter kết thúc.', 'error');
+                return;
+            }
+
+            progressBar.style.display = 'block';
+            downloadBtn.disabled = true;
+            preview.style.display = 'none';
+            let fullContent = '';
+            let storyName = '';
+
+            try {
+                const totalChapters = chapterTo - chapterFrom + 1;
+
+                for (let chapterId = chapterFrom; chapterId <= chapterTo; chapterId++) {
+                    showStatus(`Đang tải chapter ${chapterId}...`, 'success');
+                    const { name, content } = await getChapterContent(storyId, chapterId);
+                    
+                    if (!storyName) storyName = name;
+
+                    fullContent += `\n\nChapter ${chapterId}\n`;
+                    fullContent += '='.repeat(40) + '\n\n';
+                    fullContent += content + '\n';
+
+                    const progress = ((chapterId - chapterFrom + 1) / totalChapters) * 100;
+                    progressBar.value = progress;
+                }
+
+                // Create and download file
+                //const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
+                const fileName = `${storyName || 'story'}_Chapters_${chapterFrom}_to_${chapterTo}`;
+                
+                //const url = window.URL.createObjectURL(blob);
+                //const a = document.createElement('a');
+                //a.style.display = 'none';
+                //a.href = url;
+                //a.download = fileName;
+                //document.body.appendChild(a);
+                //a.click();
+                //window.URL.revokeObjectURL(url);
+                //document.body.removeChild(a);
+
+                // Render preview using React
+                preview.style.display = 'block';
+                const root = ReactDOM.createRoot(preview);
+                root.render(React.createElement(ChapterPreview, { 
+                    fileName: fileName, 
+                    content: fullContent,
+                    chapterFrom: chapterFrom,
+                    chapterTo: chapterTo
+                }));
+
+                showStatus(`Đã tải xuống thành công.`, 'success');
+            } catch (error) {
+                showStatus(`Lỗi: ${error.message}`, 'error');
+            } finally {
+                progressBar.style.display = 'none';
+                downloadBtn.disabled = false;
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = type;
+        }
+    </script>
+</body>
+</html>
